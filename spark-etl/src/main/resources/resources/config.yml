@@ -1,0 +1,14 @@
+kafkahosts:
+- localhost:9092
+
+jobs:
+- name: app1
+  checkpoint: checkpoint/app1
+  startingOffsets: latest
+  topicIn: topic1
+  topicOut: topic2
+
+- name: app2
+  checkpoint: checkpoint/app2
+  startingOffsets: latest
+  topicIn: topic2
