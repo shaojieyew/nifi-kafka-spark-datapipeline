@@ -23,4 +23,5 @@ message Sms{
   float latitude = 9;
   float longitude = 10;
   string content = 11;
+  bool is_spam = 12;
 }

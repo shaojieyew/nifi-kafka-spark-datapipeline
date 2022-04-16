@@ -1,14 +1,19 @@
-kafkahosts:
-- localhost:9092
+kafkaHosts:
+  - localhost:9092
 
 jobs:
-- name: app1
-  checkpoint: checkpoint/app1
-  startingOffsets: latest
-  topicIn: topic1
-  topicOut: topic2
+- name: BatchSmsEtl
+  input: ./dataset/sms
+  output: ./dataset/output/sms
 
-- name: app2
-  checkpoint: checkpoint/app2
+- name: StreamingSmsEtl
+  checkpoint: checkpoint/StreamingSmsEtl
   startingOffsets: latest
-  topicIn: topic2
+  input: sms-raw
+  output: sms-enriched
+
+- name: StreamingSmsWordCountEtl
+  checkpoint: checkpoint/StreamingSmsWordCountEtl
+  startingOffsets: latest
+  input: sms-enriched
+  output: ./dataset/output/wordCount

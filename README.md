@@ -27,12 +27,13 @@ In this tutorial, we will focus on designing a streaming data pipeline that will
 
 ![image description](resource/pipeline_design.jpg)
 
+
 We will be using files in `./dataset/sms` as our raw files and `./dataset/reference_dataset` as our lookup dataset for enrichment during ETL.
 Transformed data will be ingested into our data warehouse.
 
 ## 3. Raw Data and Reference Dataset
 
-The raw data that we will be ingesting and the refernce dataset are in CSV format with the following schema
+The raw data that we will be ingesting and the reference dataset are in CSV format with the following schema
 
 ### Raw Data
 
@@ -52,6 +53,7 @@ The raw data that we will be ingesting and the refernce dataset are in CSV forma
 | latitude | decimal | 
 | longitude | decimal |
 | name | string |
+
 ### Spam Phone No. Reference Dataset
 | field name | data type |
 |---|---|
@@ -136,7 +138,111 @@ message Sms{
 - create nifi workflow; list file, publish record to kafka, move file to archive
 
 ## 8. Implement Spark Structure Streaming (WIP)
-- streaming basic
-- streaming data enrichment
-- streaming aggregation
-- optimising kafka with spark
+
+We will be using Apache Spark to do most of our transformation in our data pipeline.
+Apache Spark is an open-source, distributed processing system used for big data workloads. It utilizes in-memory caching, and optimized query execution for fast analytic queries against data of any size.
+
+To use Spark framework, we need to add its artifact into our project dependency `org.apache.spark:spark-core_2.11:2.4.1` & `org.apache.spark:spark-sql_2.11:2.4.1`
+
+### Running Spark Application Basics
+
+#### Run Spark Application in IDE
+Run `demo.SparkDemo` using IDE. It imports SparkSession and creates a Dataframe within that session, do transformation and prints out the result. 
+while running, visit Spark UI at localhost:4040, click on to the SQL tab to see the queries that the application is running.
+
+![image description](resource/run_spark_app.jpg)
+
+#### Run Spark Application from Jar Locally
+To run Spark application from a jar, we need to install Apache Spark on our PC
+```
+spark-submit 
+--master local 
+--deploy-mode client 
+--class demo.SparkDemo  
+./spark-etl-1.0-SNAPSHOT.jar
+```
+
+WIP............ setup spark binary
+
+#### Run on Cluster - Submit Job to YARN instead of Running in Local
+To submit Spark Application onto YARN Cluster, we need to configure the config files; hdfs-site.xml, hdfs-core.xml and yarn-site.xml
+This will tell Spark where to find all the necessary resources it needs when running on cluster.
+```
+spark-submit 
+--master yarn 
+--deploy-mode cluster 
+--num-executors 2 
+--driver-cores 2
+--driver-memory 1G
+--executor-memory 4G
+--executor-cores 2
+--principal <Kerberos Principle> 
+--keytab <Kerberos Keytab>  
+--class demo.SparkDemo  
+./spark-etl-1.0-SNAPSHOT.jar
+```
+
+:exclamation: Choose the number of cores and memory wisely in Production Cluster, as YARN is a shared resource. It may affect other applications that you/others may be running.
+
+WIP............ setup cluster conf
+
+#### Debugging Spark Application with Breakpoint in IDE 
+Define environment variable like below
+```
+export SPARK_SUBMIT_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=7777
+```
+Then create the Debug configuration in Intellij Idea as follows
+
+Run-> Edit Configuration -> Click on "+" left top corner -> Remote -> set port and name
+
+After above configuration run spark application with spark-submit or IDE run and then run debug configruartion that was created just now and add breakpoints/checkpoints to debug.
+
+
+### Spark Batch Application 
+
+In this section, we will implement a Batch ETL `app.BatchSmsEtl`, that reads CSV SMS records from a directory, enrich it and write the result into a directory
+The ETL should enrich SMS records with the reference dataset provided in `./reference_dataset`
+
+
+##### Run Locally
+
+To run the application we will use the following:
+```
+spark-submit --master local --deploy-mode client --files ./config.yml --class app.BatchSmsEtl  ./spark-etl-1.0-SNAPSHOT.jar config.yml  BatchSmsEtl
+```
+##### Run on Cluster 
+The jars and files arguments specified in the spark-submit will be uploaded to the application master when a spark job gets submitted to the cluster
+
+WIP............ command to run on cluster? put file in hdfs?
+
+### Spark Structured Streaming
+
+Spark is capable of consuming from Kafka Data Source. Kafka Data Source provides a streaming source and a streaming sink for micro-batch and continuous stream processing in Spark.
+It requires the following dependency in the project.
+```
+org.apache.spark:spark-sql-kafka-0-10_2.11:2.4.1
+org.apache.spark:spark-streaming_2.11:2.4.1
+```
+In this section, we will implement a Streaming ETL `app.StreamingSmsEtl` that reads SMS records from Kafka stream (populated by NiFi), enrich it and write the result into another Kafka Topic.
+The behavior should be the same as previous Batch ETL except, it is streaming.
+
+Kafka Data Souce has a fixed schema, to read more: go to https://tinyurl.com/yckmmfky
+```
+root
+ |-- key: binary (nullable = true)
+ |-- value: binary (nullable = true)
+ |-- topic: string (nullable = true)
+ |-- partition: integer (nullable = true)
+ |-- offset: long (nullable = true)
+ |-- timestamp: timestamp (nullable = true)
+ |-- timestampType: integer (nullable = true)
+```
+
+WIP............ read from nifi?
+
+##### Aggregation in Structured Streaming
+
+This section we will implement a Streaming ETL that reads SMS records from Kafka stream that we published to previously, then aggregate and writes the Word Count result as CSV into a directory.
+
+
+WIP............ which directory to write to
