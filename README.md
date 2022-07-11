@@ -1,4 +1,4 @@
-This is a training package made to onboard newcomers and get familiarise with our team's techstack. 
+⚠️This is a training package made to onboard newcomers and get familiarise with our team's techstack. 
 This has been moved to an private repository and will not be maintained.
 
 # Building a Streaming Data Pipeline with NiFi, Spark and Kafka
