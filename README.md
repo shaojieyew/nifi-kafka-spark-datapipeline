@@ -1,3 +1,6 @@
+This is a training package made to onboard newcomers and get familiarise with our team's techstack. 
+This has been moved to an private repository and will not be maintained.
+
 # Building a Streaming Data Pipeline with NiFi, Spark and Kafka
 ## 1. Introduction
 This is a tutorial on how to build a scalable data pipeline with distributed platforms and processing framework. We will be looking into NiFi, Spark and Kafka.
